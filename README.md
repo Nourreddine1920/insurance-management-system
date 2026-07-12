@@ -56,11 +56,52 @@ powershell -ExecutionPolicy Bypass -File .\build.ps1 run
 ## Folder Structure
 ```
 insurance-management-system/
-├── CMakeLists.txt         # CMake build configuration
-├── README.md              # Project documentation
+├── .github/               # GitHub Actions workflows for CI/CD and releases
+├── assets/                # Supplemental diagrams, screenshots, and assets
+├── config/                # Application and CI configuration files
+├── database/              # SQLite database schema and migration scripts
+│   ├── migrations/        # Versioned database migrations
+│   └── schema.sql         # Baseline schema reference
 ├── docs/                  # Architecture and database design docs
 ├── include/               # Public header files (*.h)
+├── scripts/               # Helper scripts for setup, migrations, and release tasks
 ├── src/                   # Module source files (*.c)
-├── database/              # SQL schema script
-└── tests/                 # Unit tests (to be added)
+├── tests/                 # Automated unit tests
+└── README.md              # Project documentation
 ```
+
+## Database Migrations
+
+This repository now uses versioned SQL migrations stored in `database/migrations/`.
+
+- `001_create_tables.sql` creates the tables
+- `002_indexes.sql` creates indexes
+- `003_seed_data.sql` inserts starter data
+
+### Migration modes
+
+Run migrations directly with the application:
+
+```bash
+./insurance_system --migrate
+```
+
+This mode opens the database, applies any outstanding migrations, and exits.
+
+### Helper scripts
+
+- `scripts/init_db.sh` — Unix-like initialization script
+- `scripts/init_db.ps1` — Windows PowerShell initialization script
+
+These scripts build the project, remove an existing `insurance.db`, and bootstrap the database from migrations.
+
+## Contribution Workflow
+
+This repository includes GitHub templates for:
+
+- Pull Requests
+- Bug reports
+- Feature requests
+- Task tracking
+
+Using templates helps maintain quality, speeds review, and ensures the team captures all relevant context.

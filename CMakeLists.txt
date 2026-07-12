@@ -41,3 +41,7 @@ add_executable(insurance_system ${SOURCES})
 
 # Link SQLite3 library
 target_link_libraries(insurance_system PRIVATE SQLite::SQLite3)
+
+# Enable CTest for unit test discovery
+enable_testing()
+add_subdirectory(tests)
