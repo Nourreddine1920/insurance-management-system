@@ -26,6 +26,8 @@ endif()
 # Source files definitions
 set(SOURCES
     src/main.c
+    src/cli.c
+    src/validation.c
     src/database.c
     src/customer.c
     src/policy.c

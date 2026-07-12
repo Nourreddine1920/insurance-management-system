@@ -10,7 +10,7 @@ CFLAGS = -Wall -Wextra -Werror -Wshadow -Wstrict-prototypes -Wmissing-prototypes
 LDFLAGS = -lsqlite3
 
 # Source and Object files
-SRC = src/main.c src/database.c src/customer.c src/policy.c src/claim.c src/logger.c src/error.c
+SRC = src/main.c src/cli.c src/validation.c src/database.c src/customer.c src/policy.c src/claim.c src/logger.c src/error.c
 OBJ = $(SRC:.c=.o)
 TARGET = insurance_system
 

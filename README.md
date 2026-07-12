@@ -6,7 +6,8 @@ A professional-grade C11 command-line application simulating an internal insuran
 * **Customers Management**: CRUD operations, email-uniqueness constraint, indexing by email and name.
 * **Policies Management**: CRUD operations, policy state validation, premium checks, constraint enforcement.
 * **Claims Management**: Registrations, status tracking, aggregation query reporting.
-* **Structured CLI**: Fast, sanitised, and safe standard input interface.
+* **Structured CLI**: Interactive command-line workflows implemented in `src/cli.c` with clear menu navigation.
+* **Robust Input Validation**: strict `YYYY-MM-DD` date parsing, email/phone validation, safe numeric input, and consistent user prompts.
 * **Logger & Error Systems**: Uniform return codes and multi-level logging (INFO, DEBUG, ERROR).
 
 ## Prerequisites
@@ -21,7 +22,7 @@ sudo apt-get install build-essential cmake libsqlite3-dev Valgrind cppcheck clan
 ```
 
 ### Windows Setup
-* Install Visual Studio with "Desktop development with C++" workload.
+* Install Visual Studio with "Desktop development with C++" workload, or use MSYS2/MinGW with GCC.
 * Install SQLite3 (you can use `vcpkg` or download precompiled binaries and map them in CMake).
 
 ## Building the Project
