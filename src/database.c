@@ -247,11 +247,11 @@ static error_t discover_migration_files(const char *directory, char ***out_paths
 
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_DIR) {
+        const char *name = entry->d_name;
+        if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
             continue;
         }
 
-        const char *name = entry->d_name;
         size_t len = strlen(name);
         if (len < 5 || strcmp(name + len - 4, ".sql") != 0) {
             continue;
