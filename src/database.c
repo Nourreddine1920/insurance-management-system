@@ -34,14 +34,14 @@
 /* Using a module-level static variable ensures there is exactly one   */
 /* connection across the entire application (Singleton pattern).       */
 /* ------------------------------------------------------------------ */
-static sqlite3 *global_db = NULL;
+static sqlite3* global_db = NULL;
 
 /* ------------------------------------------------------------------ */
 /* Internal helper — execute a raw SQL string with no parameters.      */
 /* Used for one-shot commands like PRAGMA or BEGIN/COMMIT/ROLLBACK.    */
 /* ------------------------------------------------------------------ */
-static error_t db_exec_simple(const char *sql) {
-    char *errmsg = NULL;
+static error_t db_exec_simple(const char* sql) {
+    char* errmsg = NULL;
     int rc = sqlite3_exec(global_db, sql, NULL, NULL, &errmsg);
     if (rc != SQLITE_OK) {
         LOG_ERROR("SQLite exec failed [%s]: %s", sql, errmsg ? errmsg : "unknown error");
@@ -51,21 +51,21 @@ static error_t db_exec_simple(const char *sql) {
     return ERR_OK;
 }
 
-static int compare_strings(const void *a, const void *b) {
-    const char *const *sa = a;
-    const char *const *sb = b;
+static int compare_strings(const void* a, const void* b) {
+    const char* const* sa = a;
+    const char* const* sb = b;
     return strcmp(*sa, *sb);
 }
 
-static void free_string_array(char **files, size_t count) {
+static void free_string_array(char** files, size_t count) {
     for (size_t i = 0; i < count; ++i) {
         free(files[i]);
     }
     free(files);
 }
 
-static error_t load_file_to_string(const char *path, char **out_sql) {
-    FILE *file = fopen(path, "rb");
+static error_t load_file_to_string(const char* path, char** out_sql) {
+    FILE* file = fopen(path, "rb");
     if (!file) {
         LOG_ERROR("Failed to open migration file: %s", path);
         return ERR_SQLITE;
@@ -83,7 +83,7 @@ static error_t load_file_to_string(const char *path, char **out_sql) {
     }
     rewind(file);
 
-    char *buffer = malloc((size_t)file_size + 1);
+    char* buffer = malloc((size_t)file_size + 1);
     if (!buffer) {
         fclose(file);
         return ERR_OUT_OF_MEMORY;
@@ -109,9 +109,9 @@ static error_t ensure_migration_table(void) {
         ");");
 }
 
-static error_t has_migration_been_applied(const char *version, int *applied) {
-    sqlite3_stmt *stmt = NULL;
-    const char *sql = "SELECT COUNT(1) FROM schema_migrations WHERE version = ?1;";
+static error_t has_migration_been_applied(const char* version, int* applied) {
+    sqlite3_stmt* stmt = NULL;
+    const char* sql = "SELECT COUNT(1) FROM schema_migrations WHERE version = ?1;";
     int rc = sqlite3_prepare_v2(global_db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
         return ERR_SQLITE;
@@ -129,9 +129,9 @@ static error_t has_migration_been_applied(const char *version, int *applied) {
     return ERR_OK;
 }
 
-static error_t record_migration(const char *version) {
-    sqlite3_stmt *stmt = NULL;
-    const char *sql = "INSERT INTO schema_migrations (version) VALUES (?1);";
+static error_t record_migration(const char* version) {
+    sqlite3_stmt* stmt = NULL;
+    const char* sql = "INSERT INTO schema_migrations (version) VALUES (?1);";
     int rc = sqlite3_prepare_v2(global_db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
         return ERR_SQLITE;
@@ -146,22 +146,22 @@ static error_t record_migration(const char *version) {
     return ERR_OK;
 }
 
-static const char *get_filename_from_path(const char *path) {
-    const char *basename = strrchr(path, '/');
+static const char* get_filename_from_path(const char* path) {
+    const char* basename = strrchr(path, '/');
     if (!basename) {
         basename = strrchr(path, '\\');
     }
     return basename ? basename + 1 : path;
 }
 
-static error_t apply_migration_file(const char *path) {
-    char *sql = NULL;
+static error_t apply_migration_file(const char* path) {
+    char* sql = NULL;
     error_t err = load_file_to_string(path, &sql);
     if (err != ERR_OK) {
         return err;
     }
 
-    const char *version = get_filename_from_path(path);
+    const char* version = get_filename_from_path(path);
     LOG_INFO("Applying migration %s", version);
 
     err = db_begin_transaction();
@@ -193,8 +193,9 @@ static error_t apply_migration_file(const char *path) {
     return err;
 }
 
-static error_t discover_migration_files(const char *directory, char ***out_paths, size_t *out_count) {
-    char **paths = NULL;
+static error_t discover_migration_files(const char* directory, char*** out_paths,
+                                        size_t* out_count) {
+    char** paths = NULL;
     size_t count = 0;
 
 #ifdef _WIN32
@@ -218,14 +219,14 @@ static error_t discover_migration_files(const char *directory, char ***out_paths
         }
 
         size_t path_length = strlen(directory) + 1 + strlen(find_data.cFileName) + 1;
-        char *path = malloc(path_length);
+        char* path = malloc(path_length);
         if (!path) {
             FindClose(handle);
             free_string_array(paths, count);
             return ERR_OUT_OF_MEMORY;
         }
         snprintf(path, path_length, "%s\\%s", directory, find_data.cFileName);
-        char **next = realloc(paths, (count + 1) * sizeof(char *));
+        char** next = realloc(paths, (count + 1) * sizeof(char*));
         if (!next) {
             free(path);
             FindClose(handle);
@@ -238,16 +239,16 @@ static error_t discover_migration_files(const char *directory, char ***out_paths
 
     FindClose(handle);
 #else
-    DIR *dir = opendir(directory);
+    DIR* dir = opendir(directory);
     if (!dir) {
         *out_paths = NULL;
         *out_count = 0;
         return ERR_OK;
     }
 
-    struct dirent *entry;
+    struct dirent* entry;
     while ((entry = readdir(dir)) != NULL) {
-        const char *name = entry->d_name;
+        const char* name = entry->d_name;
         if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0) {
             continue;
         }
@@ -258,14 +259,14 @@ static error_t discover_migration_files(const char *directory, char ***out_paths
         }
 
         size_t path_length = strlen(directory) + 1 + len + 1;
-        char *path = malloc(path_length);
+        char* path = malloc(path_length);
         if (!path) {
             closedir(dir);
             free_string_array(paths, count);
             return ERR_OUT_OF_MEMORY;
         }
         snprintf(path, path_length, "%s/%s", directory, name);
-        char **next = realloc(paths, (count + 1) * sizeof(char *));
+        char** next = realloc(paths, (count + 1) * sizeof(char*));
         if (!next) {
             free(path);
             closedir(dir);
@@ -279,7 +280,7 @@ static error_t discover_migration_files(const char *directory, char ***out_paths
 #endif
 
     if (count > 0) {
-        qsort(paths, count, sizeof(char *), compare_strings);
+        qsort(paths, count, sizeof(char*), compare_strings);
     }
 
     *out_paths = paths;
@@ -287,7 +288,7 @@ static error_t discover_migration_files(const char *directory, char ***out_paths
     return ERR_OK;
 }
 
-static const char *builtin_schema_sql =
+static const char* builtin_schema_sql =
     "CREATE TABLE IF NOT EXISTS customers ("
     "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
     "  first_name TEXT NOT NULL,"
@@ -308,7 +309,7 @@ static const char *builtin_schema_sql =
     "  start_date  TEXT    NOT NULL,"
     "  end_date    TEXT    NOT NULL,"
     "  status      TEXT    NOT NULL"
-    "    CHECK (status IN ('ACTIVE','EXPIRED','CANCELLED'))," 
+    "    CHECK (status IN ('ACTIVE','EXPIRED','CANCELLED')),"
     "  FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT"
     ");"
     "CREATE INDEX IF NOT EXISTS idx_policies_customer_id"
@@ -320,16 +321,17 @@ static const char *builtin_schema_sql =
     "  amount      REAL    NOT NULL CHECK (amount >= 0),"
     "  claim_date  TEXT    NOT NULL,"
     "  status      TEXT    NOT NULL"
-    "    CHECK (status IN ('PENDING','APPROVED','REJECTED'))," 
+    "    CHECK (status IN ('PENDING','APPROVED','REJECTED')),"
     "  FOREIGN KEY (policy_id) REFERENCES policies(id) ON DELETE RESTRICT"
     ");"
     "CREATE INDEX IF NOT EXISTS idx_claims_policy_id"
     "  ON claims(policy_id);";
 
 static error_t db_apply_migrations(void) {
-    char **migration_paths = NULL;
+    char** migration_paths = NULL;
     size_t migration_count = 0;
-    error_t err = discover_migration_files("database/migrations", &migration_paths, &migration_count);
+    error_t err =
+        discover_migration_files("database/migrations", &migration_paths, &migration_count);
     if (err != ERR_OK) {
         return err;
     }
@@ -346,7 +348,7 @@ static error_t db_apply_migrations(void) {
     }
 
     for (size_t i = 0; i < migration_count; ++i) {
-        const char *version = get_filename_from_path(migration_paths[i]);
+        const char* version = get_filename_from_path(migration_paths[i]);
         int applied = 0;
         err = has_migration_been_applied(version, &applied);
         if (err != ERR_OK) {
@@ -376,7 +378,7 @@ static error_t db_apply_migrations(void) {
 /* PRAGMA that SQLite resets each time a new connection is opened.     */
 /* Finally, applies the database schema using migrations or fallback.  */
 /* ------------------------------------------------------------------ */
-error_t db_initialize(const char *db_path) {
+error_t db_initialize(const char* db_path) {
     if (global_db != NULL) {
         LOG_WARN("db_initialize() called but a connection is already open. Ignoring.");
         return ERR_OK;
@@ -443,7 +445,7 @@ error_t db_close(void) {
 /* and execute their own queries. Modules MUST NOT call sqlite3_close   */
 /* on this handle — only db_close() should do so.                      */
 /* ------------------------------------------------------------------ */
-sqlite3 *db_get_connection(void) {
+sqlite3* db_get_connection(void) {
     return global_db;
 }
 

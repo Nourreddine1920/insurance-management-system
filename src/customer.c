@@ -27,8 +27,8 @@
 /* char buffer. sqlite3_column_text() returns (const unsigned char *). */
 /* We cast to (const char *) and use snprintf to guard buffer bounds.  */
 /* ------------------------------------------------------------------ */
-static void copy_column_text(char *dest, size_t dest_size, sqlite3_stmt *stmt, int col) {
-    const char *src = (const char *)sqlite3_column_text(stmt, col);
+static void copy_column_text(char* dest, size_t dest_size, sqlite3_stmt* stmt, int col) {
+    const char* src = (const char*)sqlite3_column_text(stmt, col);
     if (src) {
         snprintf(dest, dest_size, "%s", src);
     } else {
@@ -40,12 +40,12 @@ static void copy_column_text(char *dest, size_t dest_size, sqlite3_stmt *stmt, i
 /* Internal helper: map a prepared statement row into a Customer struct.*/
 /* Column order MUST match the SELECT column order in the query.       */
 /* ------------------------------------------------------------------ */
-static void map_row_to_customer(sqlite3_stmt *stmt, Customer *out) {
+static void map_row_to_customer(sqlite3_stmt* stmt, Customer* out) {
     out->id = sqlite3_column_int(stmt, 0);
     copy_column_text(out->first_name, sizeof(out->first_name), stmt, 1);
-    copy_column_text(out->last_name,  sizeof(out->last_name),  stmt, 2);
-    copy_column_text(out->email,      sizeof(out->email),      stmt, 3);
-    copy_column_text(out->phone,      sizeof(out->phone),      stmt, 4);
+    copy_column_text(out->last_name, sizeof(out->last_name), stmt, 2);
+    copy_column_text(out->email, sizeof(out->email), stmt, 3);
+    copy_column_text(out->phone, sizeof(out->phone), stmt, 4);
     copy_column_text(out->created_at, sizeof(out->created_at), stmt, 5);
 }
 
@@ -59,7 +59,7 @@ static void map_row_to_customer(sqlite3_stmt *stmt, Customer *out) {
 /* auto-generated ID. Alternatively, sqlite3_last_insert_rowid() can   */
 /* be used, but only immediately after the INSERT on the same conn.    */
 /* ------------------------------------------------------------------ */
-error_t customer_create(const Customer *customer) {
+error_t customer_create(const Customer* customer) {
     if (!customer) {
         LOG_ERROR("customer_create: NULL customer pointer received.");
         return ERR_INVALID_ARG;
@@ -73,17 +73,17 @@ error_t customer_create(const Customer *customer) {
         return ERR_VALIDATION;
     }
 
-    sqlite3 *db = db_get_connection();
+    sqlite3* db = db_get_connection();
     if (!db) {
         LOG_ERROR("customer_create: No active database connection.");
         return ERR_SQLITE;
     }
 
-    const char *sql =
+    const char* sql =
         "INSERT INTO customers (first_name, last_name, email, phone) "
         "VALUES (?, ?, ?, ?);";
 
-    sqlite3_stmt *stmt = NULL;
+    sqlite3_stmt* stmt = NULL;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
         LOG_ERROR("customer_create: prepare failed: %s", sqlite3_errmsg(db));
@@ -94,8 +94,8 @@ error_t customer_create(const Customer *customer) {
      * will NOT copy the string — it trusts our pointer stays valid during
      * sqlite3_step(). Since customer is on our stack frame, this is safe. */
     sqlite3_bind_text(stmt, 1, customer->first_name, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, customer->last_name,  -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 3, customer->email,      -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, customer->last_name, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, customer->email, -1, SQLITE_STATIC);
 
     /* Phone is optional. Bind NULL if empty. */
     if (customer->phone[0] != '\0') {
@@ -113,8 +113,8 @@ error_t customer_create(const Customer *customer) {
         return ERR_SQLITE;
     }
 
-    LOG_INFO("Customer created: %s %s <%s>",
-             customer->first_name, customer->last_name, customer->email);
+    LOG_INFO("Customer created: %s %s <%s>", customer->first_name, customer->last_name,
+             customer->email);
     return ERR_OK;
 }
 
@@ -124,7 +124,7 @@ error_t customer_create(const Customer *customer) {
 /* Fetches a single customer row by primary key.                       */
 /* Returns ERR_NOT_FOUND if the ID doesn't exist in the database.      */
 /* ------------------------------------------------------------------ */
-error_t customer_get_by_id(int id, Customer *out_customer) {
+error_t customer_get_by_id(int id, Customer* out_customer) {
     if (id <= 0) {
         LOG_ERROR("customer_get_by_id: invalid id %d.", id);
         return ERR_INVALID_ARG;
@@ -134,14 +134,16 @@ error_t customer_get_by_id(int id, Customer *out_customer) {
         return ERR_INVALID_ARG;
     }
 
-    sqlite3 *db = db_get_connection();
-    if (!db) { return ERR_SQLITE; }
+    sqlite3* db = db_get_connection();
+    if (!db) {
+        return ERR_SQLITE;
+    }
 
-    const char *sql =
+    const char* sql =
         "SELECT id, first_name, last_name, email, phone, created_at "
         "FROM customers WHERE id = ?;";
 
-    sqlite3_stmt *stmt = NULL;
+    sqlite3_stmt* stmt = NULL;
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
         LOG_ERROR("customer_get_by_id: prepare failed: %s", sqlite3_errmsg(db));
         return ERR_SQLITE;
@@ -173,7 +175,7 @@ error_t customer_get_by_id(int id, Customer *out_customer) {
 /* (from the struct) and overwrite all mutable fields.                 */
 /* Note: created_at is immutable — it is never updated here.          */
 /* ------------------------------------------------------------------ */
-error_t customer_update(const Customer *customer) {
+error_t customer_update(const Customer* customer) {
     if (!customer || customer->id <= 0) {
         LOG_ERROR("customer_update: invalid customer pointer or id.");
         return ERR_INVALID_ARG;
@@ -187,22 +189,24 @@ error_t customer_update(const Customer *customer) {
         return ERR_VALIDATION;
     }
 
-    sqlite3 *db = db_get_connection();
-    if (!db) { return ERR_SQLITE; }
+    sqlite3* db = db_get_connection();
+    if (!db) {
+        return ERR_SQLITE;
+    }
 
-    const char *sql =
+    const char* sql =
         "UPDATE customers SET first_name=?, last_name=?, email=?, phone=? "
         "WHERE id=?;";
 
-    sqlite3_stmt *stmt = NULL;
+    sqlite3_stmt* stmt = NULL;
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
         LOG_ERROR("customer_update: prepare failed: %s", sqlite3_errmsg(db));
         return ERR_SQLITE;
     }
 
     sqlite3_bind_text(stmt, 1, customer->first_name, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, customer->last_name,  -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 3, customer->email,      -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, customer->last_name, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, customer->email, -1, SQLITE_STATIC);
 
     if (customer->phone[0] != '\0') {
         sqlite3_bind_text(stmt, 4, customer->phone, -1, SQLITE_STATIC);
@@ -245,12 +249,14 @@ error_t customer_delete(int id) {
         return ERR_INVALID_ARG;
     }
 
-    sqlite3 *db = db_get_connection();
-    if (!db) { return ERR_SQLITE; }
+    sqlite3* db = db_get_connection();
+    if (!db) {
+        return ERR_SQLITE;
+    }
 
-    const char *sql = "DELETE FROM customers WHERE id = ?;";
+    const char* sql = "DELETE FROM customers WHERE id = ?;";
 
-    sqlite3_stmt *stmt = NULL;
+    sqlite3_stmt* stmt = NULL;
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
         LOG_ERROR("customer_delete: prepare failed: %s", sqlite3_errmsg(db));
         return ERR_SQLITE;

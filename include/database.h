@@ -9,7 +9,7 @@
  * @param db_path Path to the SQLite database file.
  * @return error_t ERR_OK on success, ERR_SQLITE on connection/init error.
  */
-error_t db_initialize(const char *db_path);
+error_t db_initialize(const char* db_path);
 
 /**
  * @brief Closes the active database connection.
@@ -41,4 +41,4 @@ error_t db_commit_transaction(void);
  */
 error_t db_rollback_transaction(void);
 
-#endif // DATABASE_H
+#endif  // DATABASE_H

@@ -8,6 +8,6 @@
  * @param db_path Path to the SQLite database file.
  * @return 0 on normal exit, non-zero on failure.
  */
-int cli_run(const char *db_path);
+int cli_run(const char* db_path);
 
-#endif // CLI_H
+#endif  // CLI_H

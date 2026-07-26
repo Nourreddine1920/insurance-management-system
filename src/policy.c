@@ -26,15 +26,13 @@
 /* ------------------------------------------------------------------ */
 /* Valid status strings — used for BLL validation.                     */
 /* ------------------------------------------------------------------ */
-static const char * const VALID_POLICY_STATUSES[] = {
-    "ACTIVE", "EXPIRED", "CANCELLED", NULL
-};
+static const char* const VALID_POLICY_STATUSES[] = {"ACTIVE", "EXPIRED", "CANCELLED", NULL};
 
 /* ------------------------------------------------------------------ */
 /* Internal helper: validate that a status string is one of the        */
 /* allowed values. Returns 1 if valid, 0 if invalid.                  */
 /* ------------------------------------------------------------------ */
-static int is_valid_policy_status(const char *status) {
+static int is_valid_policy_status(const char* status) {
     for (int i = 0; VALID_POLICY_STATUSES[i] != NULL; i++) {
         if (strcmp(status, VALID_POLICY_STATUSES[i]) == 0) {
             return 1;
@@ -47,24 +45,24 @@ static int is_valid_policy_status(const char *status) {
 /* Internal helper: map a prepared statement row into a Policy struct. */
 /* Column order MUST match the SELECT column order in each query.      */
 /* ------------------------------------------------------------------ */
-static void map_row_to_policy(sqlite3_stmt *stmt, Policy *out) {
-    out->id          = sqlite3_column_int(stmt, 0);
+static void map_row_to_policy(sqlite3_stmt* stmt, Policy* out) {
+    out->id = sqlite3_column_int(stmt, 0);
     out->customer_id = sqlite3_column_int(stmt, 1);
 
-    const char *col;
+    const char* col;
 
-    col = (const char *)sqlite3_column_text(stmt, 2);
+    col = (const char*)sqlite3_column_text(stmt, 2);
     snprintf(out->policy_type, sizeof(out->policy_type), "%s", col ? col : "");
 
     out->premium = sqlite3_column_double(stmt, 3);
 
-    col = (const char *)sqlite3_column_text(stmt, 4);
+    col = (const char*)sqlite3_column_text(stmt, 4);
     snprintf(out->start_date, sizeof(out->start_date), "%s", col ? col : "");
 
-    col = (const char *)sqlite3_column_text(stmt, 5);
+    col = (const char*)sqlite3_column_text(stmt, 5);
     snprintf(out->end_date, sizeof(out->end_date), "%s", col ? col : "");
 
-    col = (const char *)sqlite3_column_text(stmt, 6);
+    col = (const char*)sqlite3_column_text(stmt, 6);
     snprintf(out->status, sizeof(out->status), "%s", col ? col : "");
 }
 
@@ -77,7 +75,7 @@ static void map_row_to_policy(sqlite3_stmt *stmt, Policy *out) {
 /* INSERT. This gives a clean ERR_NOT_FOUND rather than an opaque      */
 /* SQLITE_CONSTRAINT_FOREIGNKEY error to the caller.                   */
 /* ------------------------------------------------------------------ */
-error_t policy_create(const Policy *policy) {
+error_t policy_create(const Policy* policy) {
     if (!policy) {
         LOG_ERROR("policy_create: NULL policy pointer.");
         return ERR_INVALID_ARG;
@@ -101,8 +99,8 @@ error_t policy_create(const Policy *policy) {
     /* Date comparison: ISO8601 strings (YYYY-MM-DD) compare correctly
      * as plain strings because their format is lexicographically ordered. */
     if (strcmp(policy->end_date, policy->start_date) <= 0) {
-        LOG_ERROR("policy_create: end_date (%s) must be after start_date (%s).",
-                  policy->end_date, policy->start_date);
+        LOG_ERROR("policy_create: end_date (%s) must be after start_date (%s).", policy->end_date,
+                  policy->start_date);
         return ERR_VALIDATION;
     }
     if (!is_valid_policy_status(policy->status)) {
@@ -111,15 +109,15 @@ error_t policy_create(const Policy *policy) {
         return ERR_VALIDATION;
     }
 
-    sqlite3 *db = db_get_connection();
+    sqlite3* db = db_get_connection();
     if (!db) {
         LOG_ERROR("policy_create: No active database connection.");
         return ERR_SQLITE;
     }
 
     /* BLL pre-check: verify the customer exists before inserting */
-    const char *check_sql = "SELECT 1 FROM customers WHERE id = ?;";
-    sqlite3_stmt *check_stmt = NULL;
+    const char* check_sql = "SELECT 1 FROM customers WHERE id = ?;";
+    sqlite3_stmt* check_stmt = NULL;
     if (sqlite3_prepare_v2(db, check_sql, -1, &check_stmt, NULL) != SQLITE_OK) {
         LOG_ERROR("policy_create: customer check prepare failed: %s", sqlite3_errmsg(db));
         return ERR_SQLITE;
@@ -134,22 +132,22 @@ error_t policy_create(const Policy *policy) {
     }
 
     /* Insert the policy */
-    const char *sql =
+    const char* sql =
         "INSERT INTO policies (customer_id, policy_type, premium, start_date, end_date, status) "
         "VALUES (?, ?, ?, ?, ?, ?);";
 
-    sqlite3_stmt *stmt = NULL;
+    sqlite3_stmt* stmt = NULL;
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
         LOG_ERROR("policy_create: prepare failed: %s", sqlite3_errmsg(db));
         return ERR_SQLITE;
     }
 
-    sqlite3_bind_int   (stmt, 1, policy->customer_id);
-    sqlite3_bind_text  (stmt, 2, policy->policy_type, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 1, policy->customer_id);
+    sqlite3_bind_text(stmt, 2, policy->policy_type, -1, SQLITE_STATIC);
     sqlite3_bind_double(stmt, 3, policy->premium);
-    sqlite3_bind_text  (stmt, 4, policy->start_date,  -1, SQLITE_STATIC);
-    sqlite3_bind_text  (stmt, 5, policy->end_date,    -1, SQLITE_STATIC);
-    sqlite3_bind_text  (stmt, 6, policy->status,      -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, policy->start_date, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 5, policy->end_date, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 6, policy->status, -1, SQLITE_STATIC);
 
     int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -159,8 +157,8 @@ error_t policy_create(const Policy *policy) {
         return ERR_SQLITE;
     }
 
-    LOG_INFO("Policy created: type=%s customer_id=%d premium=%.2f status=%s",
-             policy->policy_type, policy->customer_id, policy->premium, policy->status);
+    LOG_INFO("Policy created: type=%s customer_id=%d premium=%.2f status=%s", policy->policy_type,
+             policy->customer_id, policy->premium, policy->status);
     return ERR_OK;
 }
 
@@ -169,7 +167,7 @@ error_t policy_create(const Policy *policy) {
 /*                                                                      */
 /* Retrieves a single policy by its primary key.                       */
 /* ------------------------------------------------------------------ */
-error_t policy_get_by_id(int id, Policy *out_policy) {
+error_t policy_get_by_id(int id, Policy* out_policy) {
     if (id <= 0) {
         LOG_ERROR("policy_get_by_id: invalid id %d.", id);
         return ERR_INVALID_ARG;
@@ -179,14 +177,16 @@ error_t policy_get_by_id(int id, Policy *out_policy) {
         return ERR_INVALID_ARG;
     }
 
-    sqlite3 *db = db_get_connection();
-    if (!db) { return ERR_SQLITE; }
+    sqlite3* db = db_get_connection();
+    if (!db) {
+        return ERR_SQLITE;
+    }
 
-    const char *sql =
+    const char* sql =
         "SELECT id, customer_id, policy_type, premium, start_date, end_date, status "
         "FROM policies WHERE id = ?;";
 
-    sqlite3_stmt *stmt = NULL;
+    sqlite3_stmt* stmt = NULL;
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
         LOG_ERROR("policy_get_by_id: prepare failed: %s", sqlite3_errmsg(db));
         return ERR_SQLITE;
@@ -218,7 +218,7 @@ error_t policy_get_by_id(int id, Policy *out_policy) {
 /* Status transitions should eventually be validated (e.g., you cannot */
 /* reactivate a CANCELLED policy) — this is a future BLL enhancement. */
 /* ------------------------------------------------------------------ */
-error_t policy_update_status(int id, const char *status) {
+error_t policy_update_status(int id, const char* status) {
     if (id <= 0) {
         LOG_ERROR("policy_update_status: invalid id %d.", id);
         return ERR_INVALID_ARG;
@@ -228,19 +228,21 @@ error_t policy_update_status(int id, const char *status) {
         return ERR_VALIDATION;
     }
 
-    sqlite3 *db = db_get_connection();
-    if (!db) { return ERR_SQLITE; }
+    sqlite3* db = db_get_connection();
+    if (!db) {
+        return ERR_SQLITE;
+    }
 
-    const char *sql = "UPDATE policies SET status = ? WHERE id = ?;";
+    const char* sql = "UPDATE policies SET status = ? WHERE id = ?;";
 
-    sqlite3_stmt *stmt = NULL;
+    sqlite3_stmt* stmt = NULL;
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
         LOG_ERROR("policy_update_status: prepare failed: %s", sqlite3_errmsg(db));
         return ERR_SQLITE;
     }
 
     sqlite3_bind_text(stmt, 1, status, -1, SQLITE_STATIC);
-    sqlite3_bind_int (stmt, 2, id);
+    sqlite3_bind_int(stmt, 2, id);
 
     int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);

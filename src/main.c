@@ -5,13 +5,13 @@
 #include <stdio.h>
 #include <string.h>
 
-static void print_usage(const char *program_name) {
+static void print_usage(const char* program_name) {
     printf("Usage: %s [--migrate]\n", program_name);
     printf("  --migrate   Apply database migrations and exit\n");
 }
 
-int main(int argc, char *argv[]) {
-    const char *database_path = "insurance.db";
+int main(int argc, char* argv[]) {
+    const char* database_path = "insurance.db";
     int migrate_only = 0;
 
     if (argc > 1) {

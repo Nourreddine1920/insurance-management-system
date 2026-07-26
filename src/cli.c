@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void print_separator(const char *title) {
+static void print_separator(const char* title) {
     printf("\n----------------------------------------\n");
     if (title) {
         printf("  %s\n", title);
@@ -41,15 +41,15 @@ static void wait_for_enter(void) {
     getchar();
 }
 
-static void read_line(char *buffer, size_t size) {
+static void read_line(char* buffer, size_t size) {
     if (fgets(buffer, (int)size, stdin) == NULL) {
         buffer[0] = '\0';
         return;
     }
-    buffer[strcspn(buffer, "\r\n") ] = '\0';
+    buffer[strcspn(buffer, "\r\n")] = '\0';
 }
 
-static int read_int(const char *prompt) {
+static int read_int(const char* prompt) {
     char buffer[64];
     int value = 0;
     while (1) {
@@ -62,7 +62,7 @@ static int read_int(const char *prompt) {
     }
 }
 
-static double read_double(const char *prompt) {
+static double read_double(const char* prompt) {
     char buffer[64];
     double value = 0.0;
     while (1) {
@@ -75,12 +75,12 @@ static double read_double(const char *prompt) {
     }
 }
 
-static void read_text(const char *prompt, char *buffer, size_t size) {
+static void read_text(const char* prompt, char* buffer, size_t size) {
     printf("%s", prompt);
     read_line(buffer, size);
 }
 
-static int is_valid_enum(const char *value, const char * const valid_values[]) {
+static int is_valid_enum(const char* value, const char* const valid_values[]) {
     if (!value || value[0] == '\0') {
         return 0;
     }
@@ -92,22 +92,23 @@ static int is_valid_enum(const char *value, const char * const valid_values[]) {
     return 0;
 }
 
-static int validate_optional_phone(const char *phone) {
+static int validate_optional_phone(const char* phone) {
     if (!phone || phone[0] == '\0') {
         return 1;
     }
     return validate_phone(phone);
 }
 
-static int validate_string_field(const char *value, const char *field_name, size_t max_length) {
+static int validate_string_field(const char* value, const char* field_name, size_t max_length) {
     if (!validate_non_empty_string(value, max_length)) {
-        printf("Invalid %s. Please enter a non-empty value shorter than %zu characters.\n", field_name, max_length);
+        printf("Invalid %s. Please enter a non-empty value shorter than %zu characters.\n",
+               field_name, max_length);
         return 0;
     }
     return 1;
 }
 
-static error_t ensure_database_ready(const char *db_path) {
+static error_t ensure_database_ready(const char* db_path) {
     error_t err = db_initialize(db_path);
     if (err != ERR_OK) {
         printf("Failed to initialize database.\n");
@@ -116,25 +117,22 @@ static error_t ensure_database_ready(const char *db_path) {
     return err;
 }
 
-static void print_customer(const Customer *c) {
-    printf("  [Customer #%d] %s %s | %s | %s\n",
-           c->id, c->first_name, c->last_name, c->email,
+static void print_customer(const Customer* c) {
+    printf("  [Customer #%d] %s %s | %s | %s\n", c->id, c->first_name, c->last_name, c->email,
            c->phone[0] ? c->phone : "(no phone)");
 }
 
-static void print_policy(const Policy *p) {
-    printf("  [Policy #%d] customer=%d | type=%s | premium=%.2f | %s → %s | status=%s\n",
-           p->id, p->customer_id, p->policy_type, p->premium,
-           p->start_date, p->end_date, p->status);
+static void print_policy(const Policy* p) {
+    printf("  [Policy #%d] customer=%d | type=%s | premium=%.2f | %s → %s | status=%s\n", p->id,
+           p->customer_id, p->policy_type, p->premium, p->start_date, p->end_date, p->status);
 }
 
-static void print_claim(const Claim *c) {
-    printf("  [Claim #%d] policy=%d | %.2f | date=%s | status=%s\n  desc: %s\n",
-           c->id, c->policy_id, c->amount, c->claim_date, c->status,
-           c->description);
+static void print_claim(const Claim* c) {
+    printf("  [Claim #%d] policy=%d | %.2f | date=%s | status=%s\n  desc: %s\n", c->id,
+           c->policy_id, c->amount, c->claim_date, c->status, c->description);
 }
 
-static void run_demo_scenario(const char *db_path) {
+static void run_demo_scenario(const char* db_path) {
     print_separator("Demo scenario");
     printf("This demo creates a sample customer, policy, and claim in sequence.\n");
 
@@ -146,9 +144,9 @@ static void run_demo_scenario(const char *db_path) {
 
     Customer customer = {0};
     snprintf(customer.first_name, sizeof(customer.first_name), "Alice");
-    snprintf(customer.last_name,  sizeof(customer.last_name),  "Martin");
-    snprintf(customer.email,      sizeof(customer.email),      "alice.martin@example.com");
-    snprintf(customer.phone,      sizeof(customer.phone),      "+33-6-00-11-22-33");
+    snprintf(customer.last_name, sizeof(customer.last_name), "Martin");
+    snprintf(customer.email, sizeof(customer.email), "alice.martin@example.com");
+    snprintf(customer.phone, sizeof(customer.phone), "+33-6-00-11-22-33");
 
     printf("\n[Step 1] Creating customer...\n");
     if (customer_create(&customer) == ERR_OK) {
@@ -160,8 +158,8 @@ static void run_demo_scenario(const char *db_path) {
     snprintf(policy.policy_type, sizeof(policy.policy_type), "HEALTH");
     policy.premium = 1200.00;
     snprintf(policy.start_date, sizeof(policy.start_date), "2026-01-01");
-    snprintf(policy.end_date,   sizeof(policy.end_date),   "2026-12-31");
-    snprintf(policy.status,     sizeof(policy.status),     "ACTIVE");
+    snprintf(policy.end_date, sizeof(policy.end_date), "2026-12-31");
+    snprintf(policy.status, sizeof(policy.status), "ACTIVE");
 
     printf("\n[Step 2] Creating policy for that customer...\n");
     if (policy_create(&policy) == ERR_OK) {
@@ -173,7 +171,7 @@ static void run_demo_scenario(const char *db_path) {
     snprintf(claim.description, sizeof(claim.description), "Hospital stay - appendix surgery");
     claim.amount = 3500.00;
     snprintf(claim.claim_date, sizeof(claim.claim_date), "2026-04-15");
-    snprintf(claim.status,     sizeof(claim.status),     "PENDING");
+    snprintf(claim.status, sizeof(claim.status), "PENDING");
 
     printf("\n[Step 3] Creating claim for that policy...\n");
     if (claim_create(&claim) == ERR_OK) {
@@ -189,7 +187,8 @@ static void create_customer_interactive(void) {
     Customer customer = {0};
     do {
         read_text("First name: ", customer.first_name, sizeof(customer.first_name));
-    } while (!validate_string_field(customer.first_name, "first name", sizeof(customer.first_name)));
+    } while (
+        !validate_string_field(customer.first_name, "first name", sizeof(customer.first_name)));
 
     do {
         read_text("Last name: ", customer.last_name, sizeof(customer.last_name));
@@ -219,7 +218,7 @@ static void create_customer_interactive(void) {
 }
 
 static void create_policy_interactive(void) {
-    static const char * const VALID_POLICY_STATUSES[] = {"ACTIVE", "EXPIRED", "CANCELLED", NULL};
+    static const char* const VALID_POLICY_STATUSES[] = {"ACTIVE", "EXPIRED", "CANCELLED", NULL};
 
     print_separator("Create Policy");
 
@@ -278,7 +277,7 @@ static void create_policy_interactive(void) {
 }
 
 static void create_claim_interactive(void) {
-    static const char * const VALID_CLAIM_STATUSES[] = {"PENDING", "APPROVED", "REJECTED", NULL};
+    static const char* const VALID_CLAIM_STATUSES[] = {"PENDING", "APPROVED", "REJECTED", NULL};
 
     print_separator("Create Claim");
 
@@ -324,7 +323,7 @@ static void create_claim_interactive(void) {
     }
 }
 
-static void reset_database(const char *db_path) {
+static void reset_database(const char* db_path) {
     print_separator("Reset database");
     db_close();
     remove(db_path);
@@ -333,8 +332,8 @@ static void reset_database(const char *db_path) {
     }
 }
 
-int cli_run(const char *db_path) {
-    const char *database_path = db_path ? db_path : "insurance.db";
+int cli_run(const char* db_path) {
+    const char* database_path = db_path ? db_path : "insurance.db";
     if (ensure_database_ready(database_path) != ERR_OK) {
         return 1;
     }
